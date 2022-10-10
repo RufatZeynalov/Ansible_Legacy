@@ -1,0 +1,14 @@
+--- 
+- hosts: localhost 
+  vars_files: 
+    - /home/ansible/secure 
+  become: yes 
+  tasks: 
+    - name: create classified directory 
+      file: 
+        state: touch 
+        name: /mnt/classified 
+    - name: insert secret into text 
+      lineinfile: 
+        path: /mnt/classified 
+        line: "{{ secret }}" 

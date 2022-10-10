@@ -1,0 +1,51 @@
+#!/usr/bin/ansible-playbook
+---
+- hosts: all
+  gather_facts: yes
+
+  tasks:
+    - name: Backup hosts file
+      become: yes
+      ignore_errors: yes
+      copy:
+        remote_src: yes
+        src: /etc/hosts
+        dest: /etc/hosts.backup
+
+    - name: Remove original hosts
+      become: yes
+      file:
+        path: /etc/hosts
+        state: absent
+
+    - name: Create blank hosts
+      become: yes
+      file:
+        path: /etc/hosts
+        state: touch
+
+    - name: add localhost
+      become: yes
+      lineinfile:
+        dest: /etc/hosts
+        line: "127.0.0.1   localhost"
+        state: present
+
+########### Builds hosts file bases on inventory but missing loghost
+    - name: Build hosts file
+      become: yes
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '.*{{ item }}$'
+        line: "{{ hostvars[item].ansible_host }}\t{{item}}.cisco.com\t{{item}}"
+        state: present
+      when: hostvars[item].ansible_host is defined
+      with_items: "{{ groups.all }}"
+
+########### Will lead to duplicate mess if run multiple times
+    - name: Add 'loghost' to hosts file
+      become: yes
+      ansible.builtin.replace:
+        path: /etc/hosts
+        regexp: '^{{ ansible_default_ipv4.address }}\t{{ ansible_hostname }}.cisco.com\t{{ ansible_hostname }}'
+        replace: "{{ ansible_default_ipv4.address }}\t{{ ansible_hostname }}.cisco.com\t{{ ansible_hostname }} loghost"

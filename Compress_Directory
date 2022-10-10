@@ -1,0 +1,12 @@
+--- 
+- hosts: dbsystems 
+  user: ansible 
+  become: yes 
+  tasks: 
+  - name: Compress Directory /var/log into /home/ansible/logs.zip 
+    archive: 
+      path: /var/log 
+      dest: /home/ansible/logs.zip 
+      owner: ansible 
+      group: ansible 
+      format: gz 

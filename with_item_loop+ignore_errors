@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: yes
+  user: ansible 
+  tasks:
+    - name: get files
+      get_url: 
+        url: "http://{{item}}/index.html"
+        dest: "/tmp/{{item}}"
+      ignore_errors: yes
+      with_items:
+        - slave1
+        - slave2
+        - dbs

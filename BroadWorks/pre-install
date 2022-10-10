@@ -1,0 +1,134 @@
+#!/usr/bin/ansible-playbook
+# ========================================================================================
+# Playbook for BroadWorks pre-install tasks for CentOS 7
+# ========================================================================================
+---
+- hosts: all
+  gather_facts: yes
+  become: yes
+  become_method: su
+  become_user: root
+
+  vars:
+    ansible_become_pass: "taclab"
+
+    required_packages:
+    - bash
+    - bind-utils
+    - chrony
+    - expect
+    - gawk
+    - gdb
+    - iproute
+    - libaio.i686
+    - libaio.x86_64
+    - libidn
+    - libgomp
+    - logrotate
+    - lsof
+    - net-snmp
+    - net-tools
+    - nss-pam-ldapd
+    - ntp
+    - openssh
+    - openssl
+    - perl
+    - psmisc
+    - procps-ng
+    - rsync
+    - sssd
+    - stunnel
+    - sudo
+    - sysstat
+    - tcp_wrappers
+    - tar
+    - unzip
+    - xinetd
+    - nss
+
+    recommended_packages:
+    - pcp-system-tools
+    - nmap
+    - tmux
+    - open-vm-tools
+    - zip
+    - screen
+    - dnf
+
+  pre_tasks:
+    - name: Wait for SSH to become available
+      wait_for_connection:
+        timeout: 60
+      register: _ssh_output
+      until: not _ssh_output.failed
+      retries: 5
+      delay: 1
+      tags: [ always ]
+
+    - name: "Assert Ansible inventory hostname matches remote node hostname"
+      assert:
+        that:
+          - inventory_hostname == ansible_facts['nodename']
+        msg: "This inventory hostname [{{ inventory_hostname }}] does not match the nodes hostname [{{ ansible_facts['nodename'] }}]"
+      tags: [ always ]
+
+  tasks:
+    - name: Set timezone to UTC
+      become: yes
+      timezone:
+        name: UTC
+
+    - name: Upgrade all packages
+      become: yes
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install Required Packages
+      become: yes
+      package:
+        name: "{{item}}"
+        state: latest
+      ignore_errors: yes
+      loop: "{{required_packages}}"
+
+    - name: Install Recommended Packages
+      become: yes
+      package:
+        name: "{{item}}"
+        state: latest
+      ignore_errors: yes
+      loop: "{{recommended_packages}}"
+
+    - name: Put SELinux in permissive mode
+      become: yes
+      selinux:
+        policy: targeted
+        state: permissive
+
+    - name: Disable Transparent Huge Pages
+      become: yes
+      lineinfile:
+        path: "/etc/default/grub"
+        line: "transparent_hugepage=never"
+        state: present
+
+    - name: Configure hosts.allow
+      become: yes
+      blockinfile:
+        path: "/etc/hosts.allow"
+        block: |
+          ALL EXCEPT stunnel: ALL
+          stunnel: localhost
+        state: present
+
+    - name: Configure hosts.deny
+      become: yes
+      blockinfile:
+        path: "/etc/hosts.deny"
+        block: "stunnel: ALL"
+        state: present
+
+    - name: Reboot
+      become: yes
+      reboot:

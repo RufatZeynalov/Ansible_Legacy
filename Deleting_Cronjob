@@ -1,0 +1,10 @@
+--- 
+- hosts: dbsystems 
+  user: ansible 
+  become: yes 
+  gather_facts: no 
+  tasks: 
+  - name:  'Removes any job that is prefixed by "#Ansible: Job 0001" from the crontab' 
+    cron: 
+      name: "Job 0001" 
+      state: absent 

@@ -1,0 +1,17 @@
+--- 
+- hosts: all 
+  become: yes 
+  user: ansible 
+  tasks: 
+    - name: Install Apache 
+      action: dnf name=httpd state=latest
+    - name: Enable and reboot apache 
+      service: name=httpd enabled=yes 
+    - name: Start httpd if it not started 
+      service: name=httpd state=started 
+    - name: Install firewalld 
+      action: yum name=firewalld state=latest
+    - name: Enable firewalld 
+      service: name=firewalld enabled=yes 
+    - name: Start service firewalld, if not started 
+      service: name=firewalld state=started 

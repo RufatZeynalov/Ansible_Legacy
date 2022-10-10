@@ -1,0 +1,14 @@
+--- 
+- hosts: localhosts 
+  user: ansible 
+  become: yes 
+  tasks: 
+    - name: Install packages 
+      yum: 
+        name: "{{ items }}" 
+        state: latest 
+      with_items: 
+        - epel 
+        - httpd 
+        - ksh 
+        - zsh 

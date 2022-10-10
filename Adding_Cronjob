@@ -1,0 +1,11 @@
+--- 
+- hosts: dbsystems 
+  user: ansible 
+  become: yes 
+  tasks: 
+  - name: Cron tasks 
+    cron: 
+      name: "Job 0001" 
+      minute: "0" 
+      hour: "5,17" 
+      job: "df -h >> /tmp/diskspace" 

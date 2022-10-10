@@ -1,0 +1,16 @@
+---
+- hosts: every
+  become: yes
+  become_method: su
+  become_user: root
+  gather_facts: no 
+  
+
+  vars:
+    ansible_become_pass: "taclab19"
+
+  tasks:
+    - name: Replace hosts file 
+      copy: 
+        src: /etc/hosts
+        dest: /etc/hosts

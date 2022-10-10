@@ -1,0 +1,43 @@
+--- 
+- hosts: all 
+  become: yes 
+  gather_facts: no 
+  tasks: 
+    - name: Add line into /etc/hosts 
+      lineinfile: 
+        path: /etc/hosts 
+        line: "169.168.0.1 ansible.xyzcorp.com" 
+    - name: Install Elinks 
+      yum: name=elinks state=latest 
+    - name: Create user 
+      user: name=xyzcorp_audit state=present 
+    - name: copy file 
+      copy: 
+        src: /home/ansible/motd 
+        dest: /etc/motd 
+      copy: 
+        src: /home/ansible/issue 
+        dest: /etc/issue 
+ 
+ 
+- hosts: network 
+  become: yes 
+  gather_facts: no 
+  tasks: 
+    - name: Install nmap 
+      yum: name=nmap-ncat state=latest 
+    - name: Create user 
+      user: name=xyzcorp_audit state=present 
+ 
+
+- hosts: sysadmin 
+  become: yes 
+  gather_facts: no 
+  tasks: 
+    - name: Copy files 
+      copy: 
+        src: /home/ansible/scripts.tgz 
+        dest: /mnt/storage/ 
+        
+        
+        
